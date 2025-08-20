@@ -1,0 +1,1192 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Quản lý Tài khoản & Mật khẩu</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+
+        .container {
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 20px;
+            padding: 40px;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+            backdrop-filter: blur(10px);
+            min-width: 500px;
+            max-width: 700px;
+            width: 100%;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        .header h1 {
+            color: #333;
+            font-size: 28px;
+            margin-bottom: 10px;
+        }
+
+        .tabs {
+            display: flex;
+            margin-bottom: 30px;
+            border-bottom: 2px solid #e1e8ed;
+        }
+
+        .tab {
+            flex: 1;
+            padding: 15px;
+            text-align: center;
+            background: none;
+            border: none;
+            cursor: pointer;
+            font-size: 16px;
+            font-weight: 600;
+            color: #666;
+            transition: all 0.3s ease;
+            position: relative;
+        }
+
+        .tab.active {
+            color: #667eea;
+        }
+
+        .tab.active::after {
+            content: '';
+            position: absolute;
+            bottom: -2px;
+            left: 0;
+            right: 0;
+            height: 2px;
+            background: #667eea;
+        }
+
+        .tab:hover {
+            color: #667eea;
+            background: rgba(102, 126, 234, 0.05);
+        }
+
+        .tab-content {
+            display: none;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        .account-counter {
+            text-align: center;
+            margin-bottom: 20px;
+            color: #667eea;
+            font-weight: 600;
+            font-size: 18px;
+        }
+
+        .input-group {
+            margin-bottom: 25px;
+        }
+
+        .input-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: #555;
+            font-size: 14px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .input-container {
+            position: relative;
+            display: flex;
+            align-items: center;
+        }
+
+        .input-field {
+            width: 100%;
+            padding: 15px;
+            border: 2px solid #e1e8ed;
+            border-radius: 10px;
+            font-size: 16px;
+            font-family: 'Courier New', monospace;
+            background-color: #f8f9fa;
+            transition: all 0.3s ease;
+            word-break: break-all;
+        }
+
+        .input-field:focus {
+            outline: none;
+            border-color: #667eea;
+            background-color: white;
+            transform: translateY(-1px);
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.2);
+        }
+
+        .copy-btn {
+            position: absolute;
+            right: 10px;
+            background: #667eea;
+            color: white;
+            border: none;
+            padding: 8px 12px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 12px;
+            transition: all 0.3s ease;
+            z-index: 2;
+        }
+
+        .copy-btn:hover {
+            background: #5a67d8;
+            transform: scale(1.05);
+        }
+
+        .copy-btn.copied {
+            background: #48bb78;
+            animation: pulse 0.5s ease;
+        }
+
+        @keyframes pulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.1); }
+            100% { transform: scale(1); }
+        }
+
+        .next-btn, .add-btn {
+            width: 100%;
+            padding: 15px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            border-radius: 10px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            margin-top: 20px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .next-btn:hover, .add-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 25px rgba(102, 126, 234, 0.3);
+        }
+
+        .next-btn:active, .add-btn:active {
+            transform: translateY(0);
+        }
+
+        .notification {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: #48bb78;
+            color: white;
+            padding: 15px 20px;
+            border-radius: 10px;
+            font-weight: 600;
+            transform: translateX(400px);
+            transition: transform 0.3s ease;
+            z-index: 1000;
+        }
+
+        .notification.show {
+            transform: translateX(0);
+        }
+
+        .account-list {
+            max-height: 400px;
+            overflow-y: auto;
+        }
+
+        .account-item {
+            background: #f8f9fa;
+            border-radius: 10px;
+            padding: 15px;
+            margin-bottom: 15px;
+            border: 2px solid #e1e8ed;
+            transition: all 0.3s ease;
+        }
+
+        .account-item:hover {
+            border-color: #667eea;
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.1);
+        }
+
+        .account-item-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 10px;
+        }
+
+        .account-number {
+            font-weight: 600;
+            color: #667eea;
+            font-size: 14px;
+        }
+
+        .delete-btn {
+            background: #e53e3e;
+            color: white;
+            border: none;
+            padding: 5px 10px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 12px;
+            transition: all 0.3s ease;
+        }
+
+        .delete-btn:hover {
+            background: #c53030;
+            transform: scale(1.05);
+        }
+
+        .account-details {
+            font-family: 'Courier New', monospace;
+            font-size: 14px;
+            color: #666;
+            word-break: break-all;
+        }
+
+        .add-form {
+            background: #f8f9fa;
+            padding: 20px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+        }
+
+        .bulk-import {
+            background: #e8f4f8;
+            padding: 20px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+            border-left: 4px solid #667eea;
+        }
+
+        .import-options {
+            display: flex;
+            gap: 15px;
+            margin-bottom: 15px;
+            align-items: center;
+        }
+
+        .import-mode {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 8px 12px;
+            background: rgba(255, 255, 255, 0.7);
+            border-radius: 8px;
+            border: 2px solid #e1e8ed;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-size: 14px;
+        }
+
+        .import-mode:hover {
+            border-color: #667eea;
+            background: rgba(102, 126, 234, 0.1);
+        }
+
+        .import-mode.selected {
+            border-color: #667eea;
+            background: rgba(102, 126, 234, 0.15);
+            color: #667eea;
+            font-weight: 600;
+        }
+
+        .import-mode input[type="radio"] {
+            margin: 0;
+            accent-color: #667eea;
+        }
+
+        .mode-description {
+            font-size: 12px;
+            color: #666;
+            margin-top: 8px;
+            padding-left: 20px;
+        }
+
+        .bulk-textarea {
+            width: 100%;
+            min-height: 200px;
+            padding: 15px;
+            border: 2px solid #e1e8ed;
+            border-radius: 10px;
+            font-family: 'Courier New', monospace;
+            font-size: 14px;
+            resize: vertical;
+            background-color: white;
+        }
+
+        .bulk-textarea:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.2);
+        }
+
+        .import-info {
+            background: #fff3cd;
+            border: 1px solid #ffeaa7;
+            border-radius: 8px;
+            padding: 12px;
+            margin-bottom: 15px;
+            font-size: 14px;
+            color: #856404;
+        }
+
+        .import-actions {
+            display: flex;
+            gap: 10px;
+            margin-top: 15px;
+        }
+
+        .clear-btn {
+            flex: 1;
+            padding: 12px;
+            background: #e53e3e;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.3s ease;
+        }
+
+        .clear-btn:hover {
+            background: #c53030;
+            transform: translateY(-1px);
+        }
+
+        .import-btn {
+            flex: 2;
+            padding: 12px;
+            background: linear-gradient(135deg, #48bb78 0%, #38a169 100%);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.3s ease;
+        }
+
+        .import-btn:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 5px 15px rgba(72, 187, 120, 0.3);
+        }
+
+        .form-row {
+            display: flex;
+            gap: 15px;
+            margin-bottom: 15px;
+        }
+
+        .form-row .input-field {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        .no-accounts {
+            text-align: center;
+            color: #666;
+            font-style: italic;
+            padding: 40px;
+        }
+
+        /* Styles for Clear All section */
+        .clear-all-section {
+            background: #ffe6e6;
+            border: 2px solid #ffb3b3;
+            border-radius: 10px;
+            padding: 20px;
+            margin-bottom: 20px;
+            border-left: 4px solid #e53e3e;
+        }
+
+        .clear-all-warning {
+            background: #ff4d4d;
+            color: white;
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 15px;
+            font-weight: 600;
+            text-align: center;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+        }
+
+        .clear-all-btn {
+            width: 100%;
+            padding: 15px;
+            background: linear-gradient(135deg, #e53e3e 0%, #c53030 100%);
+            color: white;
+            border: none;
+            border-radius: 10px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .clear-all-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 25px rgba(229, 62, 62, 0.3);
+        }
+
+        .clear-all-btn:active {
+            transform: translateY(0);
+        }
+
+        .clear-all-btn::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+            transition: left 0.5s;
+        }
+
+        .clear-all-btn:hover::before {
+            left: 100%;
+        }
+
+        .account-count-display {
+            text-align: center;
+            margin-bottom: 15px;
+            font-size: 18px;
+            color: #e53e3e;
+            font-weight: 600;
+        }
+
+        .list-actions {
+            background: #f0f0f0;
+            padding: 15px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .accounts-count {
+            font-weight: 600;
+            color: #667eea;
+            font-size: 16px;
+        }
+
+        .danger-zone {
+            background: #fff0f0;
+            border: 2px dashed #e53e3e;
+            border-radius: 10px;
+            padding: 20px;
+            margin-top: 30px;
+        }
+
+        .danger-zone h3 {
+            color: #e53e3e;
+            margin-bottom: 15px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .danger-zone-description {
+            color: #666;
+            font-size: 14px;
+            margin-bottom: 15px;
+            line-height: 1.5;
+        }
+
+        /* Debug info styles */
+        .debug-info {
+            background: #f0f8ff;
+            border: 1px solid #cce7ff;
+            border-radius: 8px;
+            padding: 12px;
+            margin-bottom: 15px;
+            font-size: 12px;
+            color: #0066cc;
+            font-family: 'Courier New', monospace;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🔐 Quản lý Tài khoản</h1>
+        </div>
+        
+        <div class="tabs">
+            <button class="tab active" onclick="switchTab('view')">Xem Tài khoản</button>
+            <button class="tab" onclick="switchTab('manage')">Quản lý Danh sách</button>
+        </div>
+
+        <!-- Tab xem tài khoản -->
+        <div id="view-tab" class="tab-content active">
+            <div class="account-counter">
+                <span id="currentAccountDisplay">Không có tài khoản nào</span>
+            </div>
+
+            <div id="account-display" style="display: none;">
+                <div class="input-group">
+                    <label for="username">Tên tài khoản</label>
+                    <div class="input-container">
+                        <input type="text" id="username" class="input-field" readonly>
+                        <button class="copy-btn" onclick="copyToClipboard('username')">Sao chép</button>
+                    </div>
+                </div>
+
+                <div class="input-group">
+                    <label for="password">Mật khẩu</label>
+                    <div class="input-container">
+                        <input type="text" id="password" class="input-field" readonly>
+                        <button class="copy-btn" onclick="copyToClipboard('password')">Sao chép</button>
+                    </div>
+                </div>
+
+                <button class="next-btn" onclick="nextAccount()">
+                    Tài khoản tiếp theo
+                </button>
+            </div>
+        </div>
+
+        <!-- Tab quản lý danh sách -->
+        <div id="manage-tab" class="tab-content">
+            <div class="bulk-import">
+                <h3 style="margin-bottom: 15px; color: #333;">📥 Nhập danh sách hàng loạt</h3>
+                
+                <div class="import-options">
+                    <label class="import-mode selected" id="replace-mode">
+                        <input type="radio" name="importMode" value="replace" checked onchange="updateImportMode()">
+                        <span>🔄 Thay thế hoàn toàn</span>
+                    </label>
+                    <label class="import-mode" id="append-mode">
+                        <input type="radio" name="importMode" value="append" onchange="updateImportMode()">
+                        <span>➕ Thêm vào danh sách</span>
+                    </label>
+                </div>
+                
+                <div class="mode-description" id="mode-description">
+                    Xóa tất cả tài khoản hiện tại và thay thế bằng danh sách mới
+                </div>
+                
+                <div class="import-info">
+                    <strong>Hướng dẫn:</strong> Mỗi dòng một tài khoản, sử dụng ký tự "|" để tách tài khoản và mật khẩu
+                    <br><strong>Ví dụ:</strong> username123|password456
+                    <br><strong>✅ Hỗ trợ tất cả ký tự đặc biệt:</strong> !@#$%^&*()_+-=[]{};:,.<>? và nhiều hơn nữa
+                    <br><strong>⚠️ Lưu ý:</strong> Chỉ ký tự "|" đầu tiên được dùng làm separator
+                </div>
+                <textarea 
+                    id="bulk-input" 
+                    class="bulk-textarea" 
+                    placeholder="s5MXMl8Ai|6yZa(<pe:OX,5
+user123|!@#$%^&*()_+-=[]{};:,.<>?
+testuser|complex<>&quot;'password
+admin|Super$ecret!@#123
+special_user|P@$w0rd_+{}[]
+
+Dán danh sách tài khoản của bạn vào đây..."
+                ></textarea>
+                <div class="import-actions">
+                    <button class="clear-btn" onclick="clearBulkInput()">Xóa nội dung</button>
+                    <button class="import-btn" onclick="importBulkAccounts()" id="import-btn">
+                        🔄 Thay thế danh sách
+                    </button>
+                </div>
+            </div>
+
+            <div class="add-form">
+                <h3 style="margin-bottom: 15px; color: #333;">➕ Thêm tài khoản đơn lẻ</h3>
+                <div class="form-row">
+                    <input type="text" id="new-username" class="input-field" placeholder="Tên tài khoản">
+                    <input type="text" id="new-password" class="input-field" placeholder="Mật khẩu">
+                </div>
+                <button class="add-btn" onclick="addAccount()">
+                    Thêm tài khoản
+                </button>
+            </div>
+
+            <div class="list-actions">
+                <span class="accounts-count" id="accounts-count">Tổng cộng: 0 tài khoản</span>
+            </div>
+
+            <div class="account-list" id="account-list">
+                <div class="no-accounts">
+                    Chưa có tài khoản nào. Hãy thêm tài khoản đầu tiên!
+                </div>
+            </div>
+
+            <!-- Danger Zone - Clear All Section -->
+            <div class="danger-zone" id="danger-zone" style="display: none;">
+                <h3>⚠️ Khu vực nguy hiểm</h3>
+                <div class="danger-zone-description">
+                    Hành động này sẽ <strong>xóa vĩnh viễn tất cả tài khoản</strong> trong danh sách và <strong>không thể hoàn tác</strong>. 
+                    Vui lòng cân nhắc kỹ trước khi thực hiện.
+                </div>
+                <div class="account-count-display" id="clear-all-count">
+                    Sẽ xóa 0 tài khoản
+                </div>
+                <button class="clear-all-btn" onclick="clearAllAccounts()">
+                    🗑️ Xóa toàn bộ tài khoản
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <div class="notification" id="notification">
+        Đã sao chép!
+    </div>
+
+    <script>
+        let accounts = [];
+        let currentIndex = 0;
+
+        // Enhanced data persistence using variables (since localStorage is not available)
+        let dataStore = {
+            accounts: [],
+            currentIndex: 0,
+            initialized: false
+        };
+        
+        // HTML entity encoding/decoding functions
+        function escapeHtml(text) {
+            const div = document.createElement('div');
+            div.textContent = text;
+            return div.innerHTML;
+        }
+        
+        function unescapeHtml(html) {
+            const div = document.createElement('div');
+            div.innerHTML = html;
+            return div.textContent || div.innerText || '';
+        }
+
+        // Load data from memory when page loads
+        function loadData() {
+            // First try to load from sessionStorage backup
+            const storageData = loadFromStorage();
+            
+            if (storageData && storageData.accounts && storageData.accounts.length > 0) {
+                accounts = storageData.accounts;
+                currentIndex = storageData.currentIndex || 0;
+                
+                // Validate currentIndex
+                if (currentIndex >= accounts.length) {
+                    currentIndex = 0;
+                }
+                
+                // Update in-memory store
+                dataStore.accounts = [...accounts];
+                dataStore.currentIndex = currentIndex;
+                dataStore.initialized = true;
+            } else {
+                // Then try in-memory store
+                const savedAccounts = getData('accounts');
+                const savedIndex = getData('currentIndex');
+                
+                if (savedAccounts && savedAccounts.length > 0) {
+                    accounts = savedAccounts;
+                    currentIndex = savedIndex || 0;
+                    if (currentIndex >= accounts.length) {
+                        currentIndex = 0;
+                    }
+                } else {
+                    // Load default accounts only if no data exists
+                    loadDefaultAccounts();
+                }
+            }
+            
+            updateDisplay();
+            renderAccountList();
+        }
+
+        function loadDefaultAccounts() {
+            accounts = [
+                {
+                    username: "s5MXMl8Ai",
+                    password: "6yZa(<pe:OX,5"
+                },
+                {
+                    username: "user123",
+                    password: "!@#$%^&*()_+-=[]{};:,.<>?"
+                },
+                {
+                    username: "testuser",
+                    password: "complex<>&\"'password"
+                },
+                {
+                    username: "admin",
+                    password: "Super$ecret!@#123"
+                },
+                {
+                    username: "special_user",
+                    password: "P@$w0rd_+{}[]"
+                }
+            ];
+            currentIndex = 0;
+            saveData();
+        }
+        
+        function saveData() {
+            dataStore.accounts = [...accounts];
+            dataStore.currentIndex = currentIndex;
+            dataStore.initialized = true;
+            
+            // Also save to sessionStorage as backup if available
+            try {
+                if (typeof(Storage) !== "undefined" && sessionStorage) {
+                    sessionStorage.setItem('accountData', JSON.stringify({
+                        accounts: accounts,
+                        currentIndex: currentIndex
+                    }));
+                }
+            } catch(e) {
+                // Ignore if storage not available
+            }
+        }
+
+        function getData(key) {
+            return dataStore[key];
+        }
+
+        function loadFromStorage() {
+            try {
+                if (typeof(Storage) !== "undefined" && sessionStorage) {
+                    const saved = sessionStorage.getItem('accountData');
+                    if (saved) {
+                        const data = JSON.parse(saved);
+                        if (data.accounts && Array.isArray(data.accounts)) {
+                            return data;
+                        }
+                    }
+                }
+            } catch(e) {
+                // Ignore if storage not available or corrupted
+            }
+            return null;
+        }
+
+        function switchTab(tabName) {
+            // Update tab buttons
+            document.querySelectorAll('.tab').forEach(tab => {
+                tab.classList.remove('active');
+            });
+            document.querySelector(`button[onclick="switchTab('${tabName}')"]`).classList.add('active');
+
+            // Update tab content
+            document.querySelectorAll('.tab-content').forEach(content => {
+                content.classList.remove('active');
+            });
+            document.getElementById(`${tabName}-tab`).classList.add('active');
+
+            if (tabName === 'manage') {
+                renderAccountList();
+            }
+        }
+
+        function updateDisplay() {
+            if (accounts.length === 0) {
+                document.getElementById('currentAccountDisplay').textContent = 'Không có tài khoản nào';
+                document.getElementById('account-display').style.display = 'none';
+                return;
+            }
+
+            document.getElementById('currentAccountDisplay').textContent = `Tài khoản ${currentIndex + 1} / ${accounts.length}`;
+            document.getElementById('account-display').style.display = 'block';
+            
+            const account = accounts[currentIndex];
+            document.getElementById('username').value = account.username;
+            document.getElementById('password').value = account.password;
+        }
+
+        function nextAccount() {
+            if (accounts.length === 0) return;
+            
+            currentIndex = (currentIndex + 1) % accounts.length;
+            
+            // Save immediately after changing index
+            saveData();
+            updateDisplay();
+            
+            // Animation effect
+            const container = document.querySelector('.container');
+            container.style.transform = 'scale(0.95)';
+            setTimeout(() => {
+                container.style.transform = 'scale(1)';
+            }, 150);
+            
+            // Show current position notification
+            showNotification(`Đang xem tài khoản ${currentIndex + 1}/${accounts.length}`, '#667eea');
+        }
+
+        function updateImportMode() {
+            const replaceMode = document.getElementById('replace-mode');
+            const appendMode = document.getElementById('append-mode');
+            const description = document.getElementById('mode-description');
+            const importBtn = document.getElementById('import-btn');
+            const selectedMode = document.querySelector('input[name="importMode"]:checked').value;
+
+            // Update visual selection
+            replaceMode.classList.toggle('selected', selectedMode === 'replace');
+            appendMode.classList.toggle('selected', selectedMode === 'append');
+
+            // Update description and button text
+            if (selectedMode === 'replace') {
+                description.textContent = 'Xóa tất cả tài khoản hiện tại và thay thế bằng danh sách mới';
+                importBtn.innerHTML = '🔄 Thay thế danh sách';
+                importBtn.style.background = 'linear-gradient(135deg, #e53e3e 0%, #c53030 100%)';
+            } else {
+                description.textContent = 'Giữ nguyên tài khoản hiện tại và thêm danh sách mới vào cuối';
+                importBtn.innerHTML = '➕ Thêm vào danh sách';
+                importBtn.style.background = 'linear-gradient(135deg, #48bb78 0%, #38a169 100%)';
+            }
+        }
+
+        function importBulkAccounts() {
+            const bulkText = document.getElementById('bulk-input').value.trim();
+            const importMode = document.querySelector('input[name="importMode"]:checked').value;
+            
+            if (!bulkText) {
+                showNotification('Vui lòng nhập danh sách tài khoản!', '#e53e3e');
+                return;
+            }
+
+            // Show confirmation for replace mode
+            if (importMode === 'replace' && accounts.length > 0) {
+                const confirmMessage = `⚠️ BẠN ĐANG THAY THẾ HOÀN TOÀN!\n\nHành động này sẽ:\n• Xóa tất cả ${accounts.length} tài khoản hiện tại\n• Thay thế bằng danh sách mới\n• Không thể hoàn tác\n\nBạn có chắc chắn muốn tiếp tục?`;
+                
+                if (!confirm(confirmMessage)) {
+                    return;
+                }
+            }
+
+            const lines = bulkText.split('\n').filter(line => line.trim() !== '');
+            let newAccounts = [];
+            let skippedCount = 0;
+            let debugInfo = [];
+
+            // Parse new accounts with improved handling
+            lines.forEach((line, lineIndex) => {
+                const trimmedLine = line.trim();
+                if (trimmedLine.includes('|')) {
+                    // Split only on the first | to handle passwords containing |
+                    const firstPipeIndex = trimmedLine.indexOf('|');
+                    const username = trimmedLine.substring(0, firstPipeIndex).trim();
+                    const password = trimmedLine.substring(firstPipeIndex + 1).trim();
+                    
+                    debugInfo.push(`Line ${lineIndex + 1}: "${trimmedLine}" -> User: "${username}", Pass: "${password}"`);
+                    
+                    if (username && password) {
+                        newAccounts.push({
+                            username: username,
+                            password: password
+                        });
+                    } else {
+                        skippedCount++;
+                        debugInfo.push(`  -> Skipped: empty username or password`);
+                    }
+                } else {
+                    skippedCount++;
+                    debugInfo.push(`Line ${lineIndex + 1}: "${trimmedLine}" -> Skipped: no | separator`);
+                }
+            });
+
+            // Show debug info in console for development
+            console.log('Import Debug Info:', debugInfo);
+
+            if (newAccounts.length === 0) {
+                showNotification('Không tìm thấy tài khoản hợp lệ nào!', '#e53e3e');
+                return;
+            }
+
+            // Apply import mode
+            const oldCount = accounts.length;
+            let message = '';
+
+            if (importMode === 'replace') {
+                // Replace all accounts
+                accounts = [...newAccounts];
+                currentIndex = 0; // Reset to first account
+                
+                if (oldCount > 0) {
+                    message = `🔄 Đã thay thế ${oldCount} tài khoản cũ bằng ${newAccounts.length} tài khoản mới!`;
+                } else {
+                    message = `✅ Đã thêm ${newAccounts.length} tài khoản!`;
+                }
+            } else {
+                // Append to existing accounts
+                accounts.push(...newAccounts);
+                message = `➕ Đã thêm ${newAccounts.length} tài khoản vào danh sách (tổng: ${accounts.length})!`;
+            }
+
+            if (skippedCount > 0) {
+                message += ` (Bỏ qua ${skippedCount} dòng không hợp lệ)`;
+            }
+
+            // Save and update UI
+            saveData();
+            renderAccountList();
+            updateDisplay();
+            showNotification(message, importMode === 'replace' ? '#e53e3e' : '#48bb78');
+            
+            // Clear the textarea after successful import
+            document.getElementById('bulk-input').value = '';
+            
+            // Show account navigation info
+            setTimeout(() => {
+                if (accounts.length > 0) {
+                    showNotification(`🔍 Đang xem tài khoản ${currentIndex + 1}/${accounts.length}`, '#667eea');
+                }
+            }, 2500);
+        }
+
+        function clearBulkInput() {
+            document.getElementById('bulk-input').value = '';
+            showNotification('Đã xóa nội dung!', '#667eea');
+        }
+
+        function addAccount() {
+            const username = document.getElementById('new-username').value.trim();
+            const password = document.getElementById('new-password').value.trim();
+
+            if (!username || !password) {
+                showNotification('Vui lòng nhập đầy đủ thông tin!', '#e53e3e');
+                return;
+            }
+
+            accounts.push({ username, password });
+            saveData();
+
+            // Clear form
+            document.getElementById('new-username').value = '';
+            document.getElementById('new-password').value = '';
+
+            renderAccountList();
+            updateDisplay();
+            showNotification('Đã thêm tài khoản thành công!');
+        }
+
+        function deleteAccount(index) {
+            if (confirm('Bạn có chắc chắn muốn xóa tài khoản này?')) {
+                accounts.splice(index, 1);
+                
+                // Adjust current index if necessary
+                if (currentIndex >= accounts.length && accounts.length > 0) {
+                    currentIndex = accounts.length - 1;
+                } else if (accounts.length === 0) {
+                    currentIndex = 0;
+                } else if (index <= currentIndex && currentIndex > 0) {
+                    // If we deleted an account before or at current position, adjust index
+                    currentIndex = currentIndex - 1;
+                }
+                
+                saveData();
+                renderAccountList();
+                updateDisplay();
+                showNotification('Đã xóa tài khoản!', '#e53e3e');
+            }
+        }
+
+        function clearAllAccounts() {
+            if (accounts.length === 0) {
+                showNotification('Không có tài khoản nào để xóa!', '#667eea');
+                return;
+            }
+
+            const accountCount = accounts.length;
+            const confirmMessage = `🚨 XÁC NHẬN XÓA TOÀN BỘ\n\n` +
+                                   `Bạn đang chuẩn bị xóa vĩnh viễn ${accountCount} tài khoản!\n\n` +
+                                   `⚠️ CẢNH BÁO:\n` +
+                                   `• Tất cả ${accountCount} tài khoản sẽ bị xóa hoàn toàn\n` +
+                                   `• Không thể phục hồi sau khi xóa\n` +
+                                   `• Bạn sẽ phải nhập lại tất cả từ đầu\n\n` +
+                                   `Gõ "XOA TAT CA" để xác nhận:`;
+
+            const userInput = prompt(confirmMessage);
+            
+            if (userInput === "XOA TAT CA") {
+                // Clear all accounts
+                accounts = [];
+                currentIndex = 0;
+                
+                // Save changes
+                saveData();
+                
+                // Update UI
+                renderAccountList();
+                updateDisplay();
+                
+                // Show success notification with count
+                showNotification(`🗑️ Đã xóa thành công ${accountCount} tài khoản!`, '#e53e3e');
+                
+                // Show additional info after delay
+                setTimeout(() => {
+                    showNotification('Danh sách tài khoản đã được làm trống', '#667eea');
+                }, 2500);
+            } else if (userInput !== null) {
+                // User entered something but not the correct phrase
+                showNotification('❌ Xác nhận không đúng. Hủy bỏ thao tác xóa.', '#ff9500');
+            }
+            // If userInput is null, user clicked Cancel, do nothing
+        }
+
+        function renderAccountList() {
+            const listContainer = document.getElementById('account-list');
+            const accountsCount = document.getElementById('accounts-count');
+            const dangerZone = document.getElementById('danger-zone');
+            const clearAllCount = document.getElementById('clear-all-count');
+            
+            // Update accounts count
+            accountsCount.textContent = `Tổng cộng: ${accounts.length} tài khoản`;
+            
+            // Show/hide danger zone based on account count
+            if (accounts.length > 0) {
+                dangerZone.style.display = 'block';
+                clearAllCount.textContent = `Sẽ xóa ${accounts.length} tài khoản`;
+            } else {
+                dangerZone.style.display = 'none';
+            }
+            
+            if (accounts.length === 0) {
+                listContainer.innerHTML = '<div class="no-accounts">Chưa có tài khoản nào. Hãy thêm tài khoản đầu tiên!</div>';
+                return;
+            }
+
+            const listHTML = accounts.map((account, index) => `
+                <div class="account-item">
+                    <div class="account-item-header">
+                        <span class="account-number">Tài khoản ${index + 1}</span>
+                        <button class="delete-btn" onclick="deleteAccount(${index})">Xóa</button>
+                    </div>
+                    <div class="account-details">
+                        <div><strong>Tài khoản:</strong> ${escapeHtml(account.username)}</div>
+                        <div><strong>Mật khẩu:</strong> ${escapeHtml(account.password)}</div>
+                    </div>
+                </div>
+            `).join('');
+
+            listContainer.innerHTML = listHTML;
+        }
+
+        function copyToClipboard(fieldId) {
+            const field = document.getElementById(fieldId);
+            const text = field.value;
+            
+            // Copy to clipboard
+            if (navigator.clipboard) {
+                navigator.clipboard.writeText(text).then(() => {
+                    showCopySuccess(fieldId);
+                }).catch(() => {
+                    fallbackCopy(field);
+                });
+            } else {
+                fallbackCopy(field);
+            }
+        }
+
+        function fallbackCopy(field) {
+            field.select();
+            document.execCommand('copy');
+            showCopySuccess(field.id);
+        }
+
+        function showCopySuccess(fieldId) {
+            showNotification();
+            
+            // Visual feedback for copy button
+            const field = document.getElementById(fieldId);
+            const copyBtn = field.parentNode.querySelector('.copy-btn');
+            const originalText = copyBtn.textContent;
+            copyBtn.textContent = '✓';
+            copyBtn.classList.add('copied');
+            
+            setTimeout(() => {
+                copyBtn.textContent = originalText;
+                copyBtn.classList.remove('copied');
+            }, 1000);
+        }
+
+        function showNotification(message = 'Đã sao chép!', color = '#48bb78') {
+            const notification = document.getElementById('notification');
+            notification.textContent = message;
+            notification.style.background = color;
+            notification.classList.add('show');
+            
+            setTimeout(() => {
+                notification.classList.remove('show');
+            }, 2000);
+        }
+
+        // Initialize on page load
+        document.addEventListener('DOMContentLoaded', function() {
+            loadData();
+            updateImportMode(); // Initialize import mode UI
+        });
+
+        // Also initialize immediately in case DOMContentLoaded already fired
+        if (document.readyState === 'loading') {
+            document.addEventListener('DOMContentLoaded', function() {
+                loadData();
+                updateImportMode();
+            });
+        } else {
+            loadData();
+            updateImportMode();
+        }
+
+        // Save state before page unload
+        window.addEventListener('beforeunload', function() {
+            saveData();
+        });
+
+        // Handle page visibility change (when switching tabs/minimizing)
+        document.addEventListener('visibilitychange', function() {
+            if (document.visibilityState === 'hidden') {
+                saveData();
+            }
+        });
+
+        // Add transition effects
+        document.querySelector('.container').style.transition = 'transform 0.3s ease';
+
+        // Handle Enter key in add form
+        document.getElementById('new-username').addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                document.getElementById('new-password').focus();
+            }
+        });
+
+        document.getElementById('new-password').addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                addAccount();
+            }
+        });
+    </script>
+</body>
+</html>
